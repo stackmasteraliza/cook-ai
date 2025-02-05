@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cooking ChatBot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        #chat {
+            width: 850px;
+            height: 400px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: scroll;
+            background-color: #fff;
+        }
+        #message {
+            width: 35%;
+            padding: 10px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+        #send {
+            width: 35%;
+            padding: 10px;
+            background-color: #488356;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #send:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat"></div>
+    <input type="text" id="message" placeholder="Type your message here..." disabled>
+    <button id="send" disabled>Send</button>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const messageInput = document.getElementById('message');
+        const sendButton = document.getElementById('send');
+
+        const ws = new WebSocket('ws://localhost:7070');
+
+        ws.onopen = () => {
+            console.log('Connected to the server');
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+        };
+
+        ws.onmessage = (event) => {
+            const message = document.createElement('div');
+            message.textContent = `Server: ${event.data}`;
+            chat.appendChild(message);
+            chat.scrollTop = chat.scrollHeight;
+        };
+
+        ws.onclose = () => {
+            console.log('Disconnected from the server');
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+        };
+
+        sendButton.onclick = () => {
+            const message = messageInput.value;
+            if (message) {
+                ws.send(message);
+                console.log(message);
+                
+                const messageElement = document.createElement('div');
+                messageElement.textContent = `You: ${message}`;
+                chat.appendChild(messageElement);
+                chat.scrollTop = chat.scrollHeight;
+                messageInput.value = '';
+            }
+        };
+
+        messageInput.onkeypress = (event) => {
+            if (event.key === 'Enter') {
+                sendButton.click();
+            }
+        };
+    </script>
+</body>
+</html>
